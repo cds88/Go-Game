@@ -1,0 +1,43 @@
+.wrapper{
+    height:100vh;
+    width:100%; 
+    padding:0;
+    background: rgb(68, 65, 65);
+} 
+.activePlayer1{
+    background: black;
+}
+.activePlayer2{
+    background:  white;
+}
+.elementHovered1{
+    background: black;
+    opacity: 0.59;
+    border: 2px solid black;
+}
+.elementHovered2{
+    background: white;
+    opacity: 0.59;
+    border: 2px solid black;
+}
+@media(max-width:1070px){
+    .playersParameters{
+        display: none;
+    }
+
+}
+.container{
+    display: flex;
+    flex-direction: row;
+}
+@media (max-width:1070px){
+    .gridParameters{
+        display:none;
+    }
+}
+.gridParameters{
+    position: absolute;
+    right:3vw;
+    bottom: 30vh;
+
+}

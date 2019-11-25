@@ -2,14 +2,21 @@ import * as React from 'react'
 import Element from './components/Element';
 import {ScreenParameters} from '../../Master';
 import { CSSProperties } from 'styled-components';
-
+import {connect} from 'react-redux';
+import { ElementsManager} from '../../algorithms/ElementsManager';
+import { AppState } from '../../reducers/ConfigureStore';
 export interface GridProps{
     screenParameters: ScreenParameters;
     activePlayer: number;
     gridLength: number;
 }
-
-type Props= GridProps;
+interface LinkStateToProps{
+    ElementsManager: ElementsManager
+}
+const mapStateToProps=(state: AppState,ownProps: GridProps):LinkStateToProps=>({
+    ElementsManager: state.InterfaceReducer.ElementsManager
+})
+type Props= GridProps & LinkStateToProps;
 const GridComponent=(Props:Props)=> {
     const GridLength: number = Props.gridLength;
 
@@ -32,14 +39,16 @@ const GridComponent=(Props:Props)=> {
         gridTemplateColumns: `repeat(${GridLength-1},1fr)`,
         margin: "0",
         padding: "0",
-        background:"brown"
+        background:"brown",
+        
+       
     } as CSSProperties
     const gridWrapperElement={
         height:`${elementHeight}px`,
         width: `${elementWidth}px`,
         border: "1px solid black",
         margin: "0",
-        padding: "0"
+        padding: "0",
     } as CSSProperties
     const gridElements={
         position: "fixed" as "fixed",
@@ -53,7 +62,7 @@ const GridComponent=(Props:Props)=> {
         gridTemplateColumns: `repeat(${GridLength},1fr)`,
         margin: "0",
         padding: "0",
-        ZIndex: "1"
+       
     } as CSSProperties
     const gridElementsElement={
         height: `${elementHeight}px`,
@@ -61,8 +70,12 @@ const GridComponent=(Props:Props)=> {
         border: "1px solid transparent",
         transition: "0.2s",   
         margin:"0",
-        padding: "0"
+        padding: "0",
+       
     }  
+    if (!Props.ElementsManager){
+        return <h1>Loading</h1>
+    }
     const Grid = []
     for (var i = 0; i < GridLength*(GridLength-2)+1; i++) {
        
@@ -72,7 +85,7 @@ const GridComponent=(Props:Props)=> {
             )
          
     }
-    const Elements = []
+  
 
     const assignMarker=(x:number, y:number, size:number):boolean=>{
         if (size===19 && ((x===4 || x===10 || x===16) && (y===4 || y===10 || y===16)))
@@ -82,20 +95,21 @@ const GridComponent=(Props:Props)=> {
         if (size === 9 && (( (x===3 || x===7 ) && (y===3 || y===7 )) || (x===5 && y===5)))
                 return true                                      
     }
-    for (var y = GridLength; y >0; y--) {
-        for (var x=1; x<=GridLength ; x++)
-        {
-        Elements.push(
-             
-            <Element key={x+"_"+y} elementStyle={gridElementsElement} x={String.fromCharCode(x-1 + 65)} y={y} 
-            activePlayer={Props.activePlayer} showXindexes={(x+1===GridLength)? true : false}
-            isMarker={ assignMarker(x,y, GridLength) }
-            isIndex={(y=== 1)? true : false }
-            />
-        )
-        }
-    }
+
+ 
     
+    const Elements = Props.ElementsManager.elements.map((el, index)=>{
+        return <Element key={index} 
+        elementStyle={gridElementsElement} 
+        x={el.x} y={el.y} 
+        activePlayer={Props.activePlayer} 
+        showXindexes={(el.y===1)? true: false}
+        isMarker={ assignMarker(el.x.charCodeAt(0)-64, el.y, Props.gridLength)  }
+        isIndex={el.y===1? true:false}
+        playerId={el.playerId}
+
+        />
+    })
     
     return (
         <>
@@ -111,4 +125,4 @@ const GridComponent=(Props:Props)=> {
 }
 
 
-export default GridComponent;
+export default connect( mapStateToProps, null)( GridComponent)

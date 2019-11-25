@@ -2,10 +2,14 @@ import {StackElement} from './UserInterface';
 export const TOGGLE_PLAYER = "TOGGLE_PLAYER"
 export const PUSH_ON_STACK = "PUSH_ON_STACK"
 export const HOVER_ELEMENT = "HOVER_ELEMENT"
+export const SET_MANAGER = "SET_MANAGER"
 export const RESIZE_BOARD = "RESIZE_BOARD" 
 
+
+
 export interface ResizeBoard{
-    type: typeof RESIZE_BOARD
+    type: typeof RESIZE_BOARD;
+    size: number;
 }
 
 export interface TogglePlayer {
@@ -14,6 +18,9 @@ export interface TogglePlayer {
 export interface PushOnStack {
     type: typeof PUSH_ON_STACK;
     element: StackElement;
+}
+export interface SetManager{
+    type: typeof SET_MANAGER
 }
 
 export interface HoverElement{
@@ -25,6 +32,7 @@ export type InterfaceActionTypes=
     |  PushOnStack
     |  HoverElement
     |  ResizeBoard
+    |  SetManager
 
 export type AppActions = InterfaceActionTypes;
 

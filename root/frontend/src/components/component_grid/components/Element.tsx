@@ -24,41 +24,32 @@ export interface ElementProps{
     showXindexes?:boolean;
     isMarker: boolean;
     isIndex: boolean;
+    playerId: number;
 }
 interface LinkDispatchToProps{
     togglePlayer:()=>void
     pushOnStack:(element:StackElement)=>void
     hoverElement:(element:{x:string,y:number})=>void
+    
 }
 const mapDispatchToProps=(
     dispatch: ThunkDispatch<any, any, AllAppActions>,
     ownProps: ElementProps
 ):LinkDispatchToProps=>({
-    togglePlayer: bindActionCreators(TogglePlayer, dispatch) ,
+    togglePlayer: bindActionCreators(TogglePlayer, dispatch),
     pushOnStack: bindActionCreators(PushOnStack, dispatch),
-        hoverElement: bindActionCreators(HoverElement, dispatch) })
+    hoverElement: bindActionCreators(HoverElement, dispatch),
+    
+    })
     
 
-interface ElementStatus{
-    isUtilized : boolean;
-    playerId: number;
-    isHovered: boolean;
-}
-
+ 
 type Props =  ElementProps & LinkDispatchToProps;
 const Element=(Props:Props)=> {
  
-    const [elementStatus, setElementStatus] = React.useState<ElementStatus>({
-        isUtilized:false,
-        isHovered:false,
-        playerId: null
-    })
+    const [isHovered, setIsHovered] = React.useState<boolean>(false)
     const handleClick=()=>{
-        setElementStatus({
-            isUtilized: true,
-            playerId: Props.activePlayer,
-            isHovered: elementStatus.isHovered
-        })
+        
         Props.pushOnStack({
             playerId:Props.activePlayer,
             x: Props.x,
@@ -68,43 +59,35 @@ const Element=(Props:Props)=> {
     }
 
     const handleHover=()=>{
-        setElementStatus({
-            isUtilized: elementStatus.isUtilized,
-            playerId: elementStatus.playerId,
-            isHovered: true
-        })
+        setIsHovered( true)
         Props.hoverElement({x:Props.x, y:Props.y})
     }
 
     const handleUnhover=()=>{
-        setElementStatus({
-            isUtilized:elementStatus.isUtilized,
-            playerId: elementStatus.playerId,
-            isHovered: false
-        })
+        setIsHovered(false)
     }
- 
+    
     return (
         <div style={{...Props.elementStyle, 
         borderRadius:Props.elementStyle.height,
         zIndex:1, 
         display: "grid", justifyContent:"center", alignItems:"center"}}
-        onClick={elementStatus.isUtilized? null : handleClick} 
+        onClick={Props.playerId!==0? null : handleClick} 
         onMouseOver={handleHover}
         onMouseOut={handleUnhover}
-        className={`${elementStatus.isUtilized ? `activePlayer${elementStatus.playerId} ` : null} ${(elementStatus.isHovered && !elementStatus.isUtilized) ? `elementHovered${Props.activePlayer}` : null}`}
+        className={`${Props.playerId!==0 ? `activePlayer${Props.playerId} ` : null} ${(isHovered && Props.playerId===0) ? `elementHovered${Props.activePlayer}` : null}`}
         >
             {Props.isMarker? 
             <div className="pointer"
             style={{ 
-                height: `${parseInt(Props.elementStyle.height) / 4}px`, width: `${parseInt(Props.elementStyle.width) / 4}px`, background: `${(elementStatus.isUtilized && elementStatus.playerId === 1) ? "rgb(119, 117, 117)" : "black"}`, borderRadius: `${parseInt(Props.elementStyle.height) / 4}px`}}
+                height: `${parseInt(Props.elementStyle.height) / 4}px`, width: `${parseInt(Props.elementStyle.width) / 4}px`, background: `${(Props.playerId!==0 && Props.playerId === 1) ? "rgb(119, 117, 117)" : "black"}`, borderRadius: `${parseInt(Props.elementStyle.height) / 4}px`}}
             />
             : null} 
 
-            {(Props.x==="A")? <p style={{position: "absolute", left:"0"}}>{Props.y}</p> : null }
+            {(Props.x==="A")? <p style={{position: "absolute", left:"0", color:`${Props.playerId!==0? `${Props.playerId===1? "white":"black"}` :"white"}`}}>{Props.y}</p> : null }
 
             {Props.isIndex? 
-            <p style={{marginTop:`${parseInt(Props.elementStyle.height)/1.5}px`}}> {Props.x} </p> 
+                <p style={{ marginTop: `${parseInt(Props.elementStyle.height) / 1.5}px`, color: `${Props.playerId!==0 ? `${Props.playerId === 1 ? "white" : "black"}` : "white"}`}}> {Props.x} </p> 
             : null}
 
         </div>

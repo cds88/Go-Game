@@ -1,5 +1,5 @@
-import {TOGGLE_PLAYER, PUSH_ON_STACK, HOVER_ELEMENT, RESIZE_BOARD, SET_MANAGER} from '../reducer_userinterface/Actions';
-import {StackElement} from '../reducer_userinterface/UserInterface';
+import {TOGGLE_PLAYER, OCCUPY_ZONE, HOVER_ELEMENT, RESIZE_BOARD, SET_MANAGER} from '../reducer_userinterface/Actions';
+import {Zone} from '../reducer_userinterface/UserInterface';
 import { AllAppActions } from './AllActionsTypes';
 import {FETCH_IMAGES_BEGIN, FETCH_IMAGES_SUCCESS, FETCH_IMAGES_ERROR} from '../reducer_data/Actions';
 import {Image} from '../reducer_data/Data';
@@ -15,10 +15,10 @@ export const TogglePlayer=():AllAppActions=>({
 })
 
 
-export const PushOnStack=(element: StackElement):AllAppActions=>({
-    type: PUSH_ON_STACK,
-    element
-})
+export const OccupyZone = (Zone: Zone): AllAppActions => ({
+         type: OCCUPY_ZONE,
+         Zone
+       });
 
 export const HoverElement = (element: { x: string, y: number }): AllAppActions=>({
     type: HOVER_ELEMENT,

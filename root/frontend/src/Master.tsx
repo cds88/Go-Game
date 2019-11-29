@@ -16,9 +16,10 @@ import { ThunkDispatch } from "redux-thunk";
 import { bindActionCreators } from 'redux';
 import {FetchImages, SetManager, ResizeBoard} from './reducers/actions/AllActions';
 
-import {StackElement} from './reducers/reducer_userinterface/UserInterface';
+ 
 import {Image} from './reducers/reducer_data/Data';
 
+import {ScreenParameters} from './reducers/reducer_userinterface/UserInterface';
 export interface MasterProps {
 
 }
@@ -26,10 +27,10 @@ export interface MasterProps {
 interface LinkStateToProps{
 
     activePlayer:number, 
-    stack: StackElement[],
     hovered: {x:string, y:number},
     gridLength: number,
-    images: Image[]
+    images: Image[],
+    score: {1:number, 2:number}
 }
 
 const mapStateToProps=(
@@ -37,10 +38,10 @@ const mapStateToProps=(
     ownProps: MasterProps
 ): LinkStateToProps=>({
     activePlayer: state.InterfaceReducer.activePlayer,
-    stack: state.InterfaceReducer.Stack,
     hovered: state.InterfaceReducer.hovered,
     gridLength: state.InterfaceReducer.GridLength,
-    images: state.DataReducer.Images
+    images: state.DataReducer.Images,
+    score: state.InterfaceReducer.Score
 
 })
 interface LinkDispatchToProps{
@@ -57,11 +58,7 @@ const mapDispatchToProps=(
     resizeBoard: bindActionCreators(ResizeBoard, dispatch)
 })
 
-export interface ScreenParameters {
-    height: number;
-    width: number;
-    ratio: number;
-}
+
 
 
 type Props = MasterProps & LinkStateToProps & LinkDispatchToProps;
@@ -99,37 +96,70 @@ export const Master=(Props:Props)=> {
     }
 
     return (
-        <div className="wrapper">
-            {Props.images.length!==0?
-                < BackgroundComponent images={Props.images}/> : null
-            }
-            
-            <div className="playersParameters" style={{position:"absolute", top:"7vh", right:"3vw", color:"white"}}>
-                <div className="container">
-                    <h1 >
-                    Active:{JSON.stringify(Props.activePlayer)} </h1> 
-                    
-                    <div className="currentPlayer" 
-                    style={{
-                    width:"50px", height:"50px", margin:"15px",
-                    borderRadius:"50px", 
-                    background:`${Props.activePlayer===1? "black" : "white"}`}}
-                    
-                    />
-                </div>
-                <h1>Position: {Props.hovered.x} {Props.hovered.y}</h1>
-            </div>
-            <div className="gridParameters" style={{color:"white"}}>
-                <p style={{margin:"0", padding:"0"}}> <h2 style={{marginRight:"40px"}}>Grid size</h2> <br/></p>
-                <select name="" id="" onChange={handleChange} value={Props.gridLength} >
-                    <option value={9}>9</option>    
-                    <option value={13}>13</option>    
-                    <option value={19} >19</option>    
-                </select> 
-                <button onClick={()=>{window.location.reload()}}>Clear</button>  
-            </div>
-            <GridComponent screenParameters={screenSize} activePlayer={Props.activePlayer} gridLength={Props.gridLength}/>
+      <div className="wrapper">
+        {Props.images.length !== 0 ? (
+          <BackgroundComponent images={Props.images} />
+        ) : null}
+
+        <div
+          className="playersParameters"
+          style={{
+            position: "absolute",
+            top: "7vh",
+            right: "3vw",
+            color: "white"
+          }}
+        >
+          <div className="container">
+            <h1>Active:{JSON.stringify(Props.activePlayer)} </h1>
+
+            <div
+              className="currentPlayer"
+              style={{
+                width: "50px",
+                height: "50px",
+                margin: "15px",
+                borderRadius: "50px",
+                background: `${Props.activePlayer === 1 ? "black" : "white"}`
+              }}
+            />
+          </div>
+          <h1>
+            Position: {Props.hovered.x} {Props.hovered.y}
+          </h1>
+          <h1>Points:</h1>
+          <h1>Player 1:{Props.score[1]}</h1>
+          <h1>Player 2:{Props.score[2]}</h1>
         </div>
+        <div className="gridParameters" style={{ color: "white" }}>
+          <p style={{ margin: "0", padding: "0" }}>
+            {" "}
+            <h2 style={{ marginRight: "40px" }}>Grid size</h2> <br />
+          </p>
+          <select
+            name=""
+            id=""
+            onChange={handleChange}
+            value={Props.gridLength}
+          >
+            <option value={9}>9</option>
+            <option value={13}>13</option>
+            <option value={19}>19</option>
+          </select>
+          <button
+            onClick={() => {
+              window.location.reload();
+            }}
+          >
+            Clear
+          </button>
+        </div>
+        <GridComponent
+          screenParameters={screenSize}
+          activePlayer={Props.activePlayer}
+          gridLength={Props.gridLength}
+        />
+      </div>
     );
     
 }

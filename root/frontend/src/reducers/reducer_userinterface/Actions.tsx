@@ -1,10 +1,11 @@
-import {StackElement} from './UserInterface';
+import {Zone} from './UserInterface';
 export const TOGGLE_PLAYER = "TOGGLE_PLAYER"
-export const PUSH_ON_STACK = "PUSH_ON_STACK"
+export const OCCUPY_ZONE = "OCCUPY_ZONE";
 export const HOVER_ELEMENT = "HOVER_ELEMENT"
 export const SET_MANAGER = "SET_MANAGER"
 export const RESIZE_BOARD = "RESIZE_BOARD" 
 
+export const CLICK_OCCUPIED= "CLICK_OCCUPIED"
 
 
 export interface ResizeBoard{
@@ -15,9 +16,9 @@ export interface ResizeBoard{
 export interface TogglePlayer {
     type: typeof TOGGLE_PLAYER;
 }
-export interface PushOnStack {
-    type: typeof PUSH_ON_STACK;
-    element: StackElement;
+export interface OccupyZone {
+  type: typeof OCCUPY_ZONE;
+  Zone: Zone;
 }
 export interface SetManager{
     type: typeof SET_MANAGER
@@ -27,12 +28,17 @@ export interface HoverElement{
     type: typeof HOVER_ELEMENT;
     element: {x:string, y:number};
 }
-export type InterfaceActionTypes=
-    |  TogglePlayer
-    |  PushOnStack
-    |  HoverElement
-    |  ResizeBoard
-    |  SetManager
+export interface ClickOccupied{
+  type: typeof CLICK_OCCUPIED
+  Zone: Zone;
+}
+export type InterfaceActionTypes =
+  | TogglePlayer
+  | OccupyZone
+  | HoverElement
+  | ResizeBoard
+  | SetManager
+  | ClickOccupied
 
 export type AppActions = InterfaceActionTypes;
 

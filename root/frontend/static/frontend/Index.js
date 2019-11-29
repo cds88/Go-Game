@@ -38090,10 +38090,10 @@ const redux_1 = __webpack_require__(/*! redux */ "./node_modules/redux/es/redux.
 const AllActions_1 = __webpack_require__(/*! ./reducers/actions/AllActions */ "./root/frontend/src/reducers/actions/AllActions.tsx");
 const mapStateToProps = (state, ownProps) => ({
     activePlayer: state.InterfaceReducer.activePlayer,
-    stack: state.InterfaceReducer.Stack,
     hovered: state.InterfaceReducer.hovered,
     gridLength: state.InterfaceReducer.GridLength,
-    images: state.DataReducer.Images
+    images: state.DataReducer.Images,
+    score: state.InterfaceReducer.Score
 });
 const mapDispatchToProps = (dispatch, ownProps) => ({
     fetchImages: redux_1.bindActionCreators(AllActions_1.FetchImages, dispatch),
@@ -38128,16 +38128,22 @@ exports.Master = (Props) => {
         Props.resizeBoard(parseInt(e.target.value));
     };
     return (React.createElement("div", { className: "wrapper" },
-        Props.images.length !== 0 ?
-            React.createElement(BackgroundComponent_1.default, { images: Props.images }) : null,
-        React.createElement("div", { className: "playersParameters", style: { position: "absolute", top: "7vh", right: "3vw", color: "white" } },
+        Props.images.length !== 0 ? (React.createElement(BackgroundComponent_1.default, { images: Props.images })) : null,
+        React.createElement("div", { className: "playersParameters", style: {
+                position: "absolute",
+                top: "7vh",
+                right: "3vw",
+                color: "white"
+            } },
             React.createElement("div", { className: "container" },
                 React.createElement("h1", null,
                     "Active:",
                     JSON.stringify(Props.activePlayer),
                     " "),
                 React.createElement("div", { className: "currentPlayer", style: {
-                        width: "50px", height: "50px", margin: "15px",
+                        width: "50px",
+                        height: "50px",
+                        margin: "15px",
                         borderRadius: "50px",
                         background: `${Props.activePlayer === 1 ? "black" : "white"}`
                     } })),
@@ -38145,7 +38151,14 @@ exports.Master = (Props) => {
                 "Position: ",
                 Props.hovered.x,
                 " ",
-                Props.hovered.y)),
+                Props.hovered.y),
+            React.createElement("h1", null, "Points:"),
+            React.createElement("h1", null,
+                "Player 1:",
+                Props.score[1]),
+            React.createElement("h1", null,
+                "Player 2:",
+                Props.score[2])),
         React.createElement("div", { className: "gridParameters", style: { color: "white" } },
             React.createElement("p", { style: { margin: "0", padding: "0" } },
                 " ",
@@ -38156,7 +38169,9 @@ exports.Master = (Props) => {
                 React.createElement("option", { value: 9 }, "9"),
                 React.createElement("option", { value: 13 }, "13"),
                 React.createElement("option", { value: 19 }, "19")),
-            React.createElement("button", { onClick: () => { window.location.reload(); } }, "Clear")),
+            React.createElement("button", { onClick: () => {
+                    window.location.reload();
+                } }, "Clear")),
         React.createElement(GridComponent_1.default, { screenParameters: screenSize, activePlayer: Props.activePlayer, gridLength: Props.gridLength })));
 };
 exports.default = react_redux_1.connect(mapStateToProps, mapDispatchToProps)(exports.Master);
@@ -38174,78 +38189,165 @@ exports.default = react_redux_1.connect(mapStateToProps, mapDispatchToProps)(exp
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-// console.log( (ele.x.charCodeAt(0)-65))
 exports.toStr = (x) => {
     return String.fromCharCode(x + 65);
 };
-class Elem {
-    constructor(x, y, player, neighbours) {
+exports.toNum = (x) => {
+    return x.charCodeAt(0) - 65;
+};
+class Element {
+    constructor(x, y, id) {
         this.x = x;
         this.y = y;
-        this.playerId = player;
-        this.neighbours = neighbours;
+        this.playerId = 0;
+        this.enemyId = 0;
+        this.hasLiberties = true;
+        this.id = id;
+        this.isCaptured = false;
+        this.groupdId = 0;
     }
-    access(player) {
+    Occupy(player) {
         this.playerId = player;
+        this.isOccupied = true;
+        player === 1 ? this.enemyId = 2 : this.enemyId = 1;
+        Object.values(this.Proximates).filter(el => { return el !== null; }).forEach(el => {
+            el.SetLiberties();
+        });
+    }
+    SetProximates(Proximates) {
+        this.Proximates = Proximates;
+        this.MaxLiberties = Object.values(Proximates).filter(el => { return el !== null; }).length;
+    }
+    SetAllies() {
+        this.Allies = Object.values(this.Proximates).filter(el => { return el !== null; }).filter(el => { return el.playerId === this.playerId; });
+    }
+    SetLiberties() {
+        this.Liberties = Object.values(this.Proximates).filter(el => { return el !== null; }).reduce((array, el) => {
+            return [...array, el.playerId];
+        }, []).filter(el => { return el === 0; }).length;
+        if (this.Liberties === 0) {
+            this.hasLiberties = false;
+        }
+    }
+    GetCaptured() {
+        this.isCaptured = true;
     }
 }
-exports.Elem = Elem;
+exports.Element = Element;
 class ElementsManager {
     constructor(gridLength) {
-        this.elements = [];
-        this.movesMade = 0;
-        this.gridLength = gridLength;
-        this.init();
-    }
-    progress() {
-        this.movesMade = this.movesMade + 1;
-    }
-    borderizer(x, y) {
-        var top, bottom, left, right;
-        if (x === 0)
-            left = null;
-        else
-            left = { x: String.fromCharCode(x + 64), y: y, playerId: 0 };
-        if (x === this.gridLength)
-            right = null;
-        else
-            right = { x: String.fromCharCode(x + 66), y: y, playerId: 0 };
-        if (y === this.gridLength)
-            top = null;
-        else
-            top = { x: String.fromCharCode(x + 65), y: y + 1, playerId: 0 };
-        if (y === 1)
-            bottom = null;
-        else
-            bottom = { x: String.fromCharCode(x + 65), y: y + -1, playerId: 0 };
-        var results = {
-            top: top, bottom: bottom, left: left, right: right
+        this.Elements = [];
+        this.MovesMade = 0;
+        this.CalcProximates = (x, y, gridlen) => {
+            var Proximates = {
+                top: y === gridlen
+                    ? null
+                    : this.findElement({ x: x, y: y + 1, playerId: 0 }),
+                bottom: y === 1
+                    ? null
+                    : this.findElement({ x: x, y: y - 1, playerId: 0 }),
+                left: x === "A"
+                    ? null
+                    : this.findElement({
+                        x: String.fromCharCode(x.charCodeAt(0) - 1),
+                        y: y,
+                        playerId: 0
+                    }),
+                right: x === String.fromCharCode(gridlen - 1 + 65)
+                    ? null
+                    : this.findElement({
+                        x: String.fromCharCode(x.charCodeAt(0) + 1),
+                        y: y,
+                        playerId: 0
+                    })
+            };
+            return Proximates;
         };
-        return results;
+        this.GridLen = gridLength;
+        this.Score = { 1: 0, 2: 0 };
+        this.Init();
+        this.SetProximates();
+        this.groupCounter = 0;
     }
-    init() {
-        for (let y = this.gridLength; y > 0; y--) {
-            for (let x = 0; x < this.gridLength; x++) {
-                this.elements.push(new Elem(exports.toStr(x), y, 0, this.borderizer(x, y)));
+    Progress() {
+        this.MovesMade = this.MovesMade + 1;
+    }
+    Init() {
+        var index = 0;
+        for (let y = this.GridLen; y > 0; y--) {
+            for (let x = 0; x < this.GridLen; x++) {
+                this.Elements.push(new Element(exports.toStr(x), y, index));
+                index = index + 1;
             }
         }
     }
-    input(ele) {
-        var result = this.elements.find((el) => {
-            return el.x === ele.x && el.y === ele.y;
+    SetProximates() {
+        this.Elements.forEach((el, index) => {
+            el.SetProximates(this.CalcProximates(el.x, el.y, this.GridLen));
+            el.SetLiberties();
         });
-        result.access(ele.playerId);
-        this.progress();
     }
-    getRepr() {
-        const result = this.elements.reduce((str, el, index) => {
-            if ((index + 1) % this.gridLength === 0) {
+    findElement(Zone) {
+        return this.Elements.find(el => {
+            return el.x === Zone.x && el.y === Zone.y;
+        });
+    }
+    GetRepr() {
+        const result = this.Elements.reduce((str, el, index) => {
+            if ((index + 1) % this.GridLen === 0) {
                 var result = `${el.playerId}\n`;
                 return str.concat(result);
             }
-            return str.concat(el.playerId.toString());
+            return str.concat(el.playerId.toString() + " ");
         }, "");
         console.log(result);
+    }
+    Admission(Zone) {
+        var result = this.Elements.find(el => {
+            return el.x === Zone.x && el.y === Zone.y;
+        });
+        result.Occupy(Zone.playerId);
+        var stones = this.Elements.filter(el => {
+            return el.isOccupied === true;
+        });
+        stones.forEach((el) => {
+            el.SetAllies();
+        });
+        stones.forEach(el => {
+            if (!el.hasLiberties && !el.isCaptured) {
+                if (el.Allies.length === 0) {
+                    el.GetCaptured();
+                    switch (el.enemyId) {
+                        case 1:
+                            this.Score[1] = this.Score[1] + 1;
+                            break;
+                        case 2:
+                            this.Score[2] = this.Score[2] + 1;
+                            break;
+                    }
+                }
+                else if (el.Allies.length < el.MaxLiberties) {
+                    this.Liberator([el], [el]);
+                }
+            }
+        });
+    }
+    Liberator(qeueue = [], BFS = [], groupCounter = null) {
+        if (!groupCounter) {
+            groupCounter = this.groupCounter;
+        }
+        var Element = qeueue[0];
+        Element.groupdId = groupCounter;
+        var bset = new Set(BFS);
+        var sas = Element.Allies.filter((el) => !bset.has(el));
+        qeueue.shift();
+        qeueue.push(...sas);
+        BFS.push(...sas);
+        if (qeueue.length === 0) {
+            console.log(BFS);
+            return null;
+        }
+        return this.Liberator(qeueue, BFS, groupCounter);
     }
 }
 exports.ElementsManager = ElementsManager;
@@ -38292,7 +38394,7 @@ exports.default = BackgroundComponent;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
-const Element_1 = __webpack_require__(/*! ./components/Element */ "./root/frontend/src/components/component_grid/components/Element.tsx");
+const ZoneComponent_1 = __webpack_require__(/*! ./components/ZoneComponent */ "./root/frontend/src/components/component_grid/components/ZoneComponent.tsx");
 const react_redux_1 = __webpack_require__(/*! react-redux */ "./node_modules/react-redux/es/index.js");
 const mapStateToProps = (state, ownProps) => ({
     ElementsManager: state.InterfaceReducer.ElementsManager
@@ -38344,7 +38446,7 @@ const GridComponent = (Props) => {
         border: "1px solid transparent",
         transition: "0.2s",
         margin: "0",
-        padding: "0",
+        padding: "0"
     };
     if (!Props.ElementsManager) {
         return React.createElement("h1", null, "Loading");
@@ -38361,8 +38463,8 @@ const GridComponent = (Props) => {
         if (size === 9 && (((x === 3 || x === 7) && (y === 3 || y === 7)) || (x === 5 && y === 5)))
             return true;
     };
-    const Elements = Props.ElementsManager.elements.map((el, index) => {
-        return React.createElement(Element_1.default, { key: index, elementStyle: gridElementsElement, x: el.x, y: el.y, activePlayer: Props.activePlayer, showXindexes: (el.y === 1) ? true : false, isMarker: assignMarker(el.x.charCodeAt(0) - 64, el.y, Props.gridLength), isIndex: el.y === 1 ? true : false, playerId: el.playerId });
+    const Elements = Props.ElementsManager.Elements.map((el, index) => {
+        return (React.createElement(ZoneComponent_1.default, { key: index, elementStyle: gridElementsElement, x: el.x, y: el.y, activePlayer: Props.activePlayer, showXindexes: el.y === 1 ? true : false, isMarker: assignMarker(el.x.charCodeAt(0) - 64, el.y, Props.gridLength), isIndex: el.y === 1 ? true : false, playerId: el.playerId, groupId: el.groupdId }));
     });
     return (React.createElement(React.Fragment, null,
         React.createElement("div", { style: gridWrapper, className: "gridWrapper", ref: sizing }, Grid),
@@ -38373,10 +38475,10 @@ exports.default = react_redux_1.connect(mapStateToProps, null)(GridComponent);
 
 /***/ }),
 
-/***/ "./root/frontend/src/components/component_grid/components/Element.tsx":
-/*!****************************************************************************!*\
-  !*** ./root/frontend/src/components/component_grid/components/Element.tsx ***!
-  \****************************************************************************/
+/***/ "./root/frontend/src/components/component_grid/components/ZoneComponent.tsx":
+/*!**********************************************************************************!*\
+  !*** ./root/frontend/src/components/component_grid/components/ZoneComponent.tsx ***!
+  \**********************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -38389,18 +38491,20 @@ const redux_1 = __webpack_require__(/*! redux */ "./node_modules/redux/es/redux.
 const AllActions_1 = __webpack_require__(/*! ../../../reducers/actions/AllActions */ "./root/frontend/src/reducers/actions/AllActions.tsx");
 const mapDispatchToProps = (dispatch, ownProps) => ({
     togglePlayer: redux_1.bindActionCreators(AllActions_1.TogglePlayer, dispatch),
-    pushOnStack: redux_1.bindActionCreators(AllActions_1.PushOnStack, dispatch),
-    hoverElement: redux_1.bindActionCreators(AllActions_1.HoverElement, dispatch),
+    occupyZone: redux_1.bindActionCreators(AllActions_1.OccupyZone, dispatch),
+    hoverElement: redux_1.bindActionCreators(AllActions_1.HoverElement, dispatch)
 });
-const Element = (Props) => {
+const ZoneComponent = (Props) => {
     const [isHovered, setIsHovered] = React.useState(false);
     const handleClick = () => {
-        Props.pushOnStack({
+        Props.occupyZone({
             playerId: Props.activePlayer,
             x: Props.x,
             y: Props.y
         });
         Props.togglePlayer();
+    };
+    const handleOccupied = () => {
     };
     const handleHover = () => {
         setIsHovered(true);
@@ -38409,21 +38513,42 @@ const Element = (Props) => {
     const handleUnhover = () => {
         setIsHovered(false);
     };
-    return (React.createElement("div", { style: Object.assign(Object.assign({}, Props.elementStyle), { borderRadius: Props.elementStyle.height, zIndex: 1, display: "grid", justifyContent: "center", alignItems: "center" }), onClick: Props.playerId !== 0 ? null : handleClick, onMouseOver: handleHover, onMouseOut: handleUnhover, className: `${Props.playerId !== 0 ? `activePlayer${Props.playerId} ` : null} ${(isHovered && Props.playerId === 0) ? `elementHovered${Props.activePlayer}` : null}` },
-        Props.isMarker ?
-            React.createElement("div", { className: "pointer", style: {
-                    height: `${parseInt(Props.elementStyle.height) / 4}px`, width: `${parseInt(Props.elementStyle.width) / 4}px`, background: `${(Props.playerId !== 0 && Props.playerId === 1) ? "rgb(119, 117, 117)" : "black"}`, borderRadius: `${parseInt(Props.elementStyle.height) / 4}px`
+    return (React.createElement("div", { style: Object.assign(Object.assign({}, Props.elementStyle), { borderRadius: Props.elementStyle.height, zIndex: 1, display: "grid", justifyContent: "center", alignItems: "center", position: "relative" }), onClick: Props.playerId !== 0 ? handleOccupied : handleClick, onMouseOver: handleHover, onMouseOut: handleUnhover, className: `${Props.playerId !== 0 ? `activePlayer${Props.playerId} ` : null} ${isHovered && Props.playerId === 0
+            ? `elementHovered${Props.activePlayer}`
+            : null}` },
+        Props.isMarker ? (React.createElement("div", { className: "pointer", style: {
+                height: `${parseInt(Props.elementStyle.height) / 4}px`,
+                width: `${parseInt(Props.elementStyle.width) / 4}px`,
+                background: `${Props.playerId !== 0 && Props.playerId === 1
+                    ? "rgb(119, 117, 117)"
+                    : "black"}`,
+                borderRadius: `${parseInt(Props.elementStyle.height) / 4}px`
+            } })) : null,
+        Props.x === "A" ? (React.createElement("p", { style: {
+                position: "absolute",
+                left: "0",
+                color: `${Props.playerId !== 0
+                    ? `${Props.playerId === 1 ? "white" : "black"}`
+                    : "white"}`
+            } }, Props.y)) : null,
+        Props.isIndex ? (React.createElement("p", { style: {
+                marginTop: `${parseInt(Props.elementStyle.height) / 1.5}px`,
+                color: `${Props.playerId !== 0
+                    ? `${Props.playerId === 1 ? "white" : "black"}`
+                    : "white"}`
+            } },
+            " ",
+            Props.x,
+            " ")) : null,
+        Props.playerId !== 0 ?
+            React.createElement("p", { style: { position: "absolute", left: "50%", top: "50", fontWeight: "bold",
+                    transform: "translateX(-50%) ",
+                    fontSize: "120px",
+                    color: `${Props.playerId === 1 ? "white" : "brown"}`
                 } })
-            : null,
-        (Props.x === "A") ? React.createElement("p", { style: { position: "absolute", left: "0", color: `${Props.playerId !== 0 ? `${Props.playerId === 1 ? "white" : "black"}` : "white"}` } }, Props.y) : null,
-        Props.isIndex ?
-            React.createElement("p", { style: { marginTop: `${parseInt(Props.elementStyle.height) / 1.5}px`, color: `${Props.playerId !== 0 ? `${Props.playerId === 1 ? "white" : "black"}` : "white"}` } },
-                " ",
-                Props.x,
-                " ")
             : null));
 };
-exports.default = react_redux_1.connect(null, mapDispatchToProps)(Element);
+exports.default = react_redux_1.connect(null, mapDispatchToProps)(ZoneComponent);
 
 
 /***/ }),
@@ -38466,9 +38591,9 @@ const axios_1 = __webpack_require__(/*! axios */ "./node_modules/axios/index.js"
 exports.TogglePlayer = () => ({
     type: Actions_1.TOGGLE_PLAYER
 });
-exports.PushOnStack = (element) => ({
-    type: Actions_1.PUSH_ON_STACK,
-    element
+exports.OccupyZone = (Zone) => ({
+    type: Actions_1.OCCUPY_ZONE,
+    Zone
 });
 exports.HoverElement = (element) => ({
     type: Actions_1.HOVER_ELEMENT,
@@ -38560,10 +38685,11 @@ exports.DataReducer = DataReducer;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TOGGLE_PLAYER = "TOGGLE_PLAYER";
-exports.PUSH_ON_STACK = "PUSH_ON_STACK";
+exports.OCCUPY_ZONE = "OCCUPY_ZONE";
 exports.HOVER_ELEMENT = "HOVER_ELEMENT";
 exports.SET_MANAGER = "SET_MANAGER";
 exports.RESIZE_BOARD = "RESIZE_BOARD";
+exports.CLICK_OCCUPIED = "CLICK_OCCUPIED";
 
 
 /***/ }),
@@ -38586,18 +38712,20 @@ const InterfaceReducerDefaultState = {
     Stack: [],
     hovered: { x: "A", y: 0 },
     ElementsManager: null,
+    Score: { 1: 0, 2: 0 }
 };
 const InterfaceReducer = (state = InterfaceReducerDefaultState, action) => {
     switch (action.type) {
         case Actions_1.HOVER_ELEMENT:
             return Object.assign(Object.assign({}, state), { hovered: action.element });
-        case Actions_1.PUSH_ON_STACK:
-            state.ElementsManager.input(action.element);
-            return Object.assign(Object.assign({}, state), { Stack: [...state.Stack, action.element], ElementsManager: state.ElementsManager });
+        case Actions_1.OCCUPY_ZONE:
+            state.ElementsManager.Admission(action.Zone);
+            state.Score = state.ElementsManager.Score;
+            return Object.assign(Object.assign({}, state), { Stack: [...state.Stack, action.Zone], ElementsManager: state.ElementsManager, Score: state.Score });
         case Actions_1.TOGGLE_PLAYER:
             return Object.assign(Object.assign({}, state), { activePlayer: state.activePlayer === 1 ? 2 : 1 });
         case Actions_1.RESIZE_BOARD:
-            return Object.assign(Object.assign({}, state), { GridLength: action.size, ElementsManager: new ElementsManager_1.ElementsManager(action.size) });
+            return Object.assign(Object.assign({}, state), { GridLength: action.size, ElementsManager: new ElementsManager_1.ElementsManager(action.size), Score: { 1: 0, 2: 0 } });
         case Actions_1.SET_MANAGER:
             return Object.assign(Object.assign({}, state), { ElementsManager: new ElementsManager_1.ElementsManager(state.GridLength) });
         default:

@@ -1,6 +1,6 @@
 import * as React from 'react'
-import Element from './components/Element';
-import {ScreenParameters} from '../../Master';
+import ZoneComponent from "./components/ZoneComponent";
+import {ScreenParameters} from '../../reducers/reducer_userinterface/UserInterface';
 import { CSSProperties } from 'styled-components';
 import {connect} from 'react-redux';
 import { ElementsManager} from '../../algorithms/ElementsManager';
@@ -64,14 +64,13 @@ const GridComponent=(Props:Props)=> {
         padding: "0",
        
     } as CSSProperties
-    const gridElementsElement={
-        height: `${elementHeight}px`,
-        width: `${elementWidth}px`,
-        border: "1px solid transparent",
-        transition: "0.2s",   
-        margin:"0",
-        padding: "0",
-       
+    const gridElementsElement = {
+      height: `${elementHeight}px`,
+      width: `${elementWidth}px`,
+      border: "1px solid transparent",
+      transition: "0.2s",
+      margin: "0",
+      padding: "0"
     }  
     if (!Props.ElementsManager){
         return <h1>Loading</h1>
@@ -98,17 +97,26 @@ const GridComponent=(Props:Props)=> {
 
  
     
-    const Elements = Props.ElementsManager.elements.map((el, index)=>{
-        return <Element key={index} 
-        elementStyle={gridElementsElement} 
-        x={el.x} y={el.y} 
-        activePlayer={Props.activePlayer} 
-        showXindexes={(el.y===1)? true: false}
-        isMarker={ assignMarker(el.x.charCodeAt(0)-64, el.y, Props.gridLength)  }
-        isIndex={el.y===1? true:false}
-        playerId={el.playerId}
-
-        />
+    const Elements = Props.ElementsManager.Elements.map((el, index)=>{
+        return (
+          <ZoneComponent
+            key={index}
+            elementStyle={gridElementsElement}
+            x={el.x}
+            y={el.y}
+            activePlayer={Props.activePlayer}
+            showXindexes={el.y === 1 ? true : false}
+            isMarker={assignMarker(
+              el.x.charCodeAt(0) - 64,
+              el.y,
+              Props.gridLength
+            )}
+            isIndex={el.y === 1 ? true : false}
+            playerId={el.playerId}
+            groupId={el.groupdId}
+       
+          />
+        );
     })
     
     return (
